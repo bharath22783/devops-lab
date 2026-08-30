@@ -1,0 +1,64 @@
+name: DevOps Lab CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Build Docker image
+        run: docker build -t devops-lab-app:test ./app
+
+      - name: Start PostgreSQL
+        run: |
+          docker run -d \
+            --name postgres-test \
+            -e POSTGRES_USER=labuser \
+            -e POSTGRES_PASSWORD=labpassword \
+            -e POSTGRES_DB=labdb \
+            postgres:16-alpine
+
+      - name: Wait for PostgreSQL
+        run: |
+          for i in {1..30}; do
+            if docker exec postgres-test pg_isready -U labuser -d labdb; then
+              exit 0
+            fi
+            sleep 2
+          done
+          exit 1
+
+      - name: Start application
+        run: |
+          docker network create test-network
+          docker network connect test-network postgres-test
+
+          docker run -d \
+            --name app-test \
+            --network test-network \
+            -e DB_HOST=postgres-test \
+            -e POSTGRES_DB=labdb \
+            -e POSTGRES_USER=labuser \
+            -e POSTGRES_PASSWORD=labpassword \
+            devops-lab-app:test
+
+      - name: Test application
+        run: |
+          sleep 5
+          docker exec app-test wget -qO- http://127.0.0.1:5000/health
+
+      - name: Cleanup
+        if: always()
+        run: |
+          docker rm -f app-test postgres-test || true
+          docker network rm test-network || true
