@@ -50,7 +50,7 @@ jobs:
             -e POSTGRES_DB=labdb \
             -e POSTGRES_USER=labuser \
             -e POSTGRES_PASSWORD=labpassword \
-            devops-lab-app:test
+            ghcr.io/bharath22783/devops-lab:test
 
       - name: Test application
         run: |
