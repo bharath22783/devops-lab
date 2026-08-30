@@ -1,0 +1,23 @@
+name: DevOps Lab CD Test
+
+on:
+  workflow_dispatch:
+
+jobs:
+  runner-test:
+    runs-on: self-hosted
+
+    steps:
+      - name: Runner information
+        run: |
+          echo "Runner hostname:"
+          hostname
+
+          echo "Architecture:"
+          uname -m
+
+          echo "Docker:"
+          docker version --format '{{.Server.Version}}'
+
+          echo "Running containers:"
+          docker ps
