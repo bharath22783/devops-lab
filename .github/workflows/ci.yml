@@ -17,7 +17,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Build Docker image
-        run: docker build -t devops-lab-app:test ./app
+        run: docker build -t ghcr.io/bharath22783/devops-lab:test ./app
 
       - name: Start PostgreSQL
         run: |
